@@ -72,25 +72,32 @@ void chromaKey(Mat img) { //Run chroma key function on <img> (warning: overwrite
 		}
 		bp += 4; gp += 4; rp += 4; ap += 4;
 	}
+	//TODO add softening around edges 
 }
 
 void updateDisplay() { //Update the current shown image
 	Mat img_show;
-	Size newsize(1200, 1200 * bgra.rows / bgra.cols); //Resize image to a reasonable size
+	Size newsize(900 * bgra.cols / bgra.rows, 900); //Resize image to a reasonable size
 	resize(bgra, img_show, newsize);
 
 	std::chrono::time_point<std::chrono::system_clock> start_time = std::chrono::system_clock::now();
 	chromaKey(img_show); //Run chroma key function
 	std::chrono::time_point<std::chrono::system_clock> end_time = std::chrono::system_clock::now(); //Calculate time elapsed and print
 	double elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-	std::cout << "Proccessing loop time: " << elapsed_ms << " ms" << std::endl;
+	//std::cout << "Proccessing loop time: " << elapsed_ms << " ms" << std::endl;
 
 	imshow(window_name, img_show); //Show final image
 }
 
 void onTrackbar(int sp, void *val) {
-	ALPHA_MIN = alpha_min_slider;
-	ALPHA_MAX = alpha_max_slider;
+	if (alpha_min_slider < alpha_max_slider) {
+		ALPHA_MIN = alpha_min_slider;
+		ALPHA_MAX = alpha_max_slider;
+	} else {
+		alpha_min_slider = alpha_max_slider - 1;
+		ALPHA_MIN = alpha_min_slider;
+		ALPHA_MAX = alpha_max_slider;
+	}
 	updateDisplay();
 }
 
