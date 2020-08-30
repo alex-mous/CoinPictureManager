@@ -21,7 +21,10 @@
     <ClCompile Include="ChromaKey.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Crop.cpp">
+    <ClCompile Include="CropImages.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageFunctions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -29,7 +32,13 @@
     <ClInclude Include="ChromaKey.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Crop.h">
+    <ClInclude Include="ImageFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CropImages.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

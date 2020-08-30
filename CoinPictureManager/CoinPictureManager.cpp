@@ -18,30 +18,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
-#include <iomanip>
-#include <filesystem>
-#include <string>
-#include <stdlib.h>
-
+#include "Dependencies.h"
 #include "ChromaKey.h"
-#include "Crop.h"
+#include "CropImages.h"
+#include "ImageFunctions.h"
 
-
-
-using namespace std;
-
-namespace fs = std::experimental::filesystem;
-
-std::string helpStr = "PictureManager\n\
-Manage and prepare coin pictures \n\
-\n\
-Available commands: \n\
-\t1: renaming files to sequential numbers in each folder \n\
-\t2: create thumbnails (only first two images) \n\
-\t3: create WebP copies of all JPG images \n\
-\t4: create thumbnails with all images in each folder \n\
-\t5: run greenscreening (if cropping, run 6 first) on all images in each folder \n\
+std::string helpStr = "PictureManager\nManage and prepare coin pictures \n\
+\nAvailable commands: \n\t1: renaming files to sequential numbers in each folder \n\
+\t2: create thumbnails from the first two images in each folder \n\t3: create thumbnails with all images in each folder \n\
+\t4: create WebP copies of all JPG images \n\t5: run greenscreening (if cropping, run 6 first) on all images in each folder \n\
 \t6: crop all images in each folder to the coin \n\n\n";
 
 std::string verifyStr = "Files MUST be organized as follows : \n\
@@ -69,8 +54,8 @@ Is this file in the correct location? (y/n) ";
  */
 int getSelection() {
 	char sel;
-	cout << "Please enter a command: ";
-	cin >> sel;
+	std::cout << "Please enter a command: ";
+	std::cin >> sel;
 	return sel;
 }
 
@@ -80,23 +65,22 @@ int getSelection() {
  * @param command Integer command as defined in getSelection
  * @return success code
  */
-
 int runCommand(int command) {
 	fs::path path("./Input");
 	switch (command) {
 		case 1:
-			cout << "Renaming files in subdirectories" << endl;
+			std::cout << "Renaming files in subdirectories" << std::endl;
 			for (auto &d : fs::directory_iterator(path)) { //Each sub-directory
 				if (fs::is_directory(d)) {
 					int f_no = 0;
 					for (auto &f : fs::directory_iterator(d)) { //Each image file
 						if (f.path().extension() == ".JPG") {
-							string name = to_string(f_no);
+							std::string name = std::to_string(f_no);
 							name.insert(name.begin(), 4 - name.length(), '0');
 							name = name + ".jpg";
 							fs::path new_path = d.path() / name;
 							fs::rename(f, new_path);
-							cout << "Renaming JPG file " << f.path().filename() << " to " << name << endl;
+							std::cout << "Renaming JPG file " << f.path().filename() << " to " << name << std::endl;
 							f_no++;
 						}
 					}
@@ -108,7 +92,7 @@ int runCommand(int command) {
 				if (fs::is_directory(d)) {
 					for (auto &f : fs::directory_iterator(d)) { //Each image file
 						if (f.path().extension() == ".JPG") {
-							cout << "Running chroma keying on JPG file " << f.path().string() << endl;
+							std::cout << "Running chroma keying on JPG file " << f.path().string() << std::endl;
 							chromaKeyInterface(f.path().string().c_str(), f.path().string().c_str());
 						}
 					}
@@ -120,7 +104,7 @@ int runCommand(int command) {
 				if (fs::is_directory(d)) {
 					for (auto &f : fs::directory_iterator(d)) { //Each image file
 						if (f.path().extension() == ".JPG") {
-							cout << "Cropping " << f.path().string() << "..." << endl;
+							std::cout << "Cropping " << f.path().string() << "..." << std::endl;
 							cropImage(f.path().string().c_str(), f.path().string().c_str());
 						}
 					}
@@ -128,33 +112,32 @@ int runCommand(int command) {
 			}
 			return 0;
 		default:
-			cout << "Command not recognized" << endl;
+			std::cout << "Command not recognized" << std::endl;
 			return 1;
 	}
 }
 
+/*
+ * Verify the file structure with the user
+ *
+ * @return boolean based on if user accepts or denys
+ */
 bool verifyPrompt() {
-	cout << verifyStr;
+	std::cout << verifyStr;
 	char res;
 	while (1) {
-		cin >> res;
+		std::cin >> res;
 		if (res == 'y' || res == 'Y') {
 			return true;
 		} else if (res == 'n' || res == 'N') {
 			return false;
 		} else {
-			cout << "Please enter either y or n: ";
+			std::cout << "Please enter either y or n: ";
 		}
 	}
 }
 
 int main(int argc, char *argv[]) {
-	/*if (argc < 2) {
-		std::cout << "Usage: display_image IMAGE_TO_LOAD" << std::endl;
-		return 1;
-	}
-	//chromaKeyInterface(argv[1], "output.jpg");
-	cropImage(argv[1], "cropped.jpg");*/
 	if (argc == 1) { //Run interface
 		std::cout << helpStr;
 		bool verify = verifyPrompt();
@@ -166,15 +149,15 @@ int main(int argc, char *argv[]) {
 			}
 		}
 		else {
-			cout << "Please verify this file is in the correct directory before continuing";
+			std::cout << "Please verify this file is in the correct directory before continuing";
 		}
 	} else { //Run function requested
 		char opt;
 		for (int i = 0; i < argc; i++) {
 			if (argv[i] == "-") {
-				cout << "Parameter\n";
+				std::cout << "Parameter\n";
 			} else {
-				cout << argv[i] << endl;
+				std::cout << argv[i] << std::endl;
 			}
 		}
 	}

@@ -18,16 +18,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
-#include <chrono>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include "opencv2/imgproc/imgproc.hpp"
-#include "wtypes.h"
 #include "ChromaKey.h"
-
-using namespace cv;
-using namespace std;
 
 const char *window_name = "Adjust Chroma Key";
 
@@ -42,7 +33,13 @@ int alpha_max_slider = ALPHA_MAX;
 //Main image
 Mat bgra; //Input image (BGRA format)
 
-uchar alphaMap(int d) { //Alpha mapping function for 0-510 color distance to 0-255 alpha value
+/*
+ * Alpha mapping function for 0-510 color distance value to a 0-255 alpha value
+ *
+ * @param d Color distance value (2*color1 - color2 - color3)
+ * @return Alpha value (unsigned char, or int of value 0-255)
+ */
+uchar alphaMap(int d) {
 	if (d < ALPHA_MIN) {
 		return 255;
 	}
@@ -54,13 +51,18 @@ uchar alphaMap(int d) { //Alpha mapping function for 0-510 color distance to 0-2
 	}
 }
 
-void chromaKey(Mat img) { //Run chroma key function on <img> (warning: overwrites pixel values)
-	uchar *bp = img.data;
+/*
+ * Run chroma key function on supplied image (overwrites pixel values of given image)
+ *
+ * @param img Pointer to image to run chroma keying on
+ */
+void chromaKey(Mat *img) {
+	uchar *bp = (*img).data;
 	uchar *gp = bp + 1;
 	uchar *rp = gp + 1;
 	uchar *ap = rp + 1;
 
-	for (int i = 0; i < img.cols*img.rows; i++) { //Iterate over each pixel in image
+	for (int i = 0; i < (*img).cols*(*img).rows; i++) { //Iterate over each pixel in image
 		if (*bp >= *gp && *bp >= *rp) {
 			*ap = alphaMap(2 * *bp - (*gp + *rp));
 			*bp = (255 - *ap) + *bp*(*ap) / 255;
@@ -75,20 +77,30 @@ void chromaKey(Mat img) { //Run chroma key function on <img> (warning: overwrite
 	//TODO add softening around edges 
 }
 
-void updateDisplay() { //Update the current shown image
+
+/*
+ * Update the current shown image
+ */
+void updateDisplay() {
 	Mat img_show;
 	Size newsize(900 * bgra.cols / bgra.rows, 900); //Resize image to a reasonable size
 	resize(bgra, img_show, newsize);
 
-	std::chrono::time_point<std::chrono::system_clock> start_time = std::chrono::system_clock::now();
-	chromaKey(img_show); //Run chroma key function
-	std::chrono::time_point<std::chrono::system_clock> end_time = std::chrono::system_clock::now(); //Calculate time elapsed and print
-	double elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+	//std::chrono::time_point<std::chrono::system_clock> start_time = std::chrono::system_clock::now();
+	chromaKey(&img_show); //Run chroma key function
+	//std::chrono::time_point<std::chrono::system_clock> end_time = std::chrono::system_clock::now(); //Calculate time elapsed and print
+	//double elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
 	//std::cout << "Proccessing loop time: " << elapsed_ms << " ms" << std::endl;
 
 	imshow(window_name, img_show); //Show final image
 }
 
+/*
+ * Event handler for adjustments to the alpha min and max values
+ *
+ * @param sp Current val
+ * @param val Pointer to other fields
+ */
 void onTrackbar(int sp, void *val) {
 	if (alpha_min_slider < alpha_max_slider) {
 		ALPHA_MIN = alpha_min_slider;
@@ -101,6 +113,13 @@ void onTrackbar(int sp, void *val) {
 	updateDisplay();
 }
 
+/*
+ * Run chroma keying on the image at the supplied filename and save to the supplied output filename, showing an OpenCV GUI to adjust the max and min alpha values
+ *
+ * @param filename Input filename
+ * @param output_filename Output filename
+ * @return Success code
+ */
 int chromaKeyInterface(const char* filename, const char *output_filename) {
 	Mat image;
 	image = imread(filename, IMREAD_COLOR);
@@ -121,7 +140,7 @@ int chromaKeyInterface(const char* filename, const char *output_filename) {
 
 	std::cout << "Saving image..." << std::endl;
 
-	chromaKey(bgra);
+	chromaKey(&bgra);
 	imwrite(output_filename, bgra);
 
 	std::cout << "Image saved to " << output_filename << std::endl;

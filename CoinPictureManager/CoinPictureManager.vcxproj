@@ -157,11 +157,14 @@
   <ItemGroup>
     <ClCompile Include="ChromaKey.cpp" />
     <ClCompile Include="CoinPictureManager.cpp" />
-    <ClCompile Include="Crop.cpp" />
+    <ClCompile Include="CropImages.cpp" />
+    <ClCompile Include="ImageFunctions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ChromaKey.h" />
-    <ClInclude Include="Crop.h" />
+    <ClInclude Include="CropImages.h" />
+    <ClInclude Include="Dependencies.h" />
+    <ClInclude Include="ImageFunctions.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
