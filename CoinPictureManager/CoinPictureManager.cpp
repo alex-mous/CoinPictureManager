@@ -23,32 +23,41 @@
 #include "CropImages.h"
 #include "ImageFunctions.h"
 
-std::string console_help_str = "\
-Manage and prepare coin pictures located in subdirectories of DIRECTORY\
+#define DEFAULT_PATH "./Images"
+
+std::string info_str = "Manage and prepare coin pictures located in subdirectories of DIRECTORY";
+
+std::string console_usage_str = "\
 \n\
 Usage:\n\
-\tcoinpicturemanager [DIRECTORY] [-h] [-i] [-v] [-c|g|t|s|w|r]\n\
+\tcoinpicturemanager [DIRECTORY] [OPTIONS]\n\
 \n\
 Options:\n\
 \t-h\t\tPrint this help\n\
 \t-i\t\tInteractive mode (default unless other option specified)\n\
 \t-v\t\tVerbose mode\n\
-\t-c\t\tCrop images (GUI required)\n\
-\t-g\t\tChroma Key images (GUI required)\n\
-\t-t\t\tCreate thumbnails\n\
-\t-s\t\tCreate thumbnails from the first two images only\n\
-\t-w\t\tCreate WebP images\n\
-\t-r\t\tRename files to sequential numbers\n\
+\t-c=COMMANDS\t\tRun command(s) (commands run in order listed; see available commands below)\n\
+\n\
+Commands:\n\
+\t1\t\tRename files to sequential numbers\n\
+\t2\t\tCreate thumbnails\n\
+\t3\t\tCreate thumbnails from the first two images only\n\
+\t4\t\tCreate WebP images\n\
+\t5\t\tChroma Key images (GUI required)\n\
+\t6\t\tCrop images (GUI required)\n\
 ";
 
-std::string help_str = "PictureManager\nManage and prepare coin pictures\n\
-\nRuns the below commands on the images in the subdirectories of the specified directory (\"Images\" by default)\n\
-\nAvailable commands: \n\t1: renaming files to sequential numbers\n\
-\t2: create thumbnails from the first two images\n\t3: create thumbnails with all images\n\
+std::string help_str = "-------------- PictureManager --------------\n----- Manage and prepare coin pictures -----\n\n\
+------- Welcome to interactive mode  -------\n\n\
+Run commands (enter l for a list or h for help)\n";
+
+std::string command_str = "\nAvailable commands: \n\t1: renaming files to sequential numbers\n\
+\t3: create thumbnails with all images\n\t2: create thumbnails from the first two images\n\
 \t4: create WebP images\n\t5: run chroma keying \n\
-\t6: crop each image \n\th: show this help\n\n\n";
+\t6: crop each image \n\tl: show this list\n\tl: show help\n\tq: quit\n\n\n";
 
 std::string verify_str = "Files MUST be organized as follows : \n\
+(Default picture directory is \"Images\" unless otherwise specified with command line options)\n\
 / This directory \n\
 \tThis File.exe \n\
 \t/ Images \n\
@@ -98,7 +107,11 @@ int renameFiles(fs::path root_dir, boolean verbose) {
  * @param verbose Verbose
  */
 int createThumbnail(fs::path root_dir, int max_imgs, boolean verbose) {
-	std::cout << "Creating thumbnail files in subdirectories (up to two images)..." << std::endl;
+	if (max_imgs > 0) {
+		std::cout << "Creating thumbnail files in subdirectories with a maximum number of pictures " << max_imgs << "..." << std::endl;
+	} else {
+		std::cout << "Creating thumbnail files in subdirectories..." << std::endl;
+	}
 	for (auto &d : fs::directory_iterator(root_dir)) { //Each sub-directory
 		if (fs::is_directory(d)) {
 			if (verbose) std::cout << "\tDirectory: " << d.path().filename() << std::endl;
@@ -175,7 +188,7 @@ int cropImages(fs::path root_dir, boolean verbose) {
  * @param command Integer command as defined in getSelection
  * @return success code
  */
-int runCommand(int command, boolean verbose, fs::path root_dir) {
+int runCommand(char command, boolean verbose, boolean interactive_mode, fs::path root_dir) {
 	switch (command) {
 		case '1':
 			return renameFiles(root_dir, verbose);
@@ -189,13 +202,22 @@ int runCommand(int command, boolean verbose, fs::path root_dir) {
 			return chromaKey(root_dir, verbose);
 		case '6':
 			return cropImages(root_dir, verbose);
+		case 'l':
+			if (interactive_mode) {
+				std::cout << command_str;
+				return 0;
+			}
 		case 'h':
-			std::cout << help_str;
+			if (interactive_mode) {
+				std::cout << help_str << std::endl << command_str << std::endl << verify_str;
+				return 0;
+			}
 		case 'q':
-			std::cout << "Exiting..." << std::endl;
-			return -1;
+			if (interactive_mode) {
+				return -1;
+			}
 		default:
-			std::cout << "Command not recognized. Please try again" << std::endl;
+			std::cout << "Command \"" << command << "\" not recognized. Please try again" << std::endl;
 			return 1;
 	}
 }
@@ -205,14 +227,13 @@ int runCommand(int command, boolean verbose, fs::path root_dir) {
  *
  * @return status code
  */
-int runUI(fs::path root_dir) {
+int runUI(fs::path root_dir, boolean verbose) {
 	std::cout << help_str;
-	std::cout << verify_str;
 	while (1) {
 		char sel;
-		std::cout << "Please enter a command: ";
+		std::cout << ">>> ";
 		std::cin >> sel;
-		int status = runCommand(sel, true, root_dir);
+		int status = runCommand(sel, verbose, true, root_dir);
 		if (status == -1) { //Exit
 			break;
 		}
@@ -220,28 +241,62 @@ int runUI(fs::path root_dir) {
 	return 0;
 }
 
-int main(int argc, char *argv[]) {
-	fs::path root_dir = fs::path("./Input");
-	if (argc > 1) { //Parse commands
-		std::vector<char> opts;
-		for (int i = 1; i < argc; i++) {
-			if (argv[i][0] == '-') { //General option
-				std::cout << "Option selected: " << argv[i][1] << std::endl;
-				std::cout << argv[i][1] << std::endl;
-				opts.push_back(argv[i][1]);
-			} else if (i == 1) { //Second arg should be directory (if any)
-				root_dir = fs::path(argv[i]);
-				if (!fs::is_directory(root_dir)) {
-					std::cout << "Directory \"" << argv[i] << "\" does not exist";
+int main(int argc, char **argv) { //Main loop - parse any command line options and run either command or interactive mode
+	boolean run_ui = false, verbose = false;
+	std::vector<char> commands;
+	fs::path root_dir = fs::path(DEFAULT_PATH);
+
+	//Parse the arguments
+	for (int i = 1; i < argc; i++) {
+		if (argv[i][0] == '-' && strlen(argv[i]) >= 2) { //General option
+			if (argv[i][1] == 'h') { //Show help
+				std::cout << info_str << std::endl << console_usage_str;
+				return 0;
+			} else if (argv[i][1] == 'i') { //Interactive mode
+				run_ui = true;
+			} else if (argv[i][1] == 'v') { //Verbose mode
+				verbose = true;
+			} else if (argv[i][1] == 'c') { //Run command
+				if (strlen(argv[i]) > 3 && argv[i][2] == '=') {
+					for (int c=3; c<strlen(argv[i]); c++) {
+						commands.push_back(argv[i][c]);
+					}
+				} else {
+					std::cout << "Please enter commands in the format -c=[COMMAND1][COMMAND2][COMMAND3]" << std::endl << std::endl;
+					std::cout << console_usage_str;
 					return 1;
 				}
+			} else {
+				std::cout << "Option \"" << argv[i] << "\" not recognized" << std::endl << std::endl;
+				std::cout << console_usage_str;
+				return 1;
+			}
+		} else if (i == 1) { //Second arg should be directory (if any)
+			root_dir = fs::path(argv[i]);
+			if (!fs::is_directory(root_dir)) {
+				std::cout << "Directory \"" << argv[i] << "\" does not exist" << std::endl << std::endl;
+				std::cout << console_usage_str;
+				return 1;
 			}
 		}
-	} else {
-		//Interactive mode
-		runUI(root_dir);
 	}
 
+	//Run any commands
+	if (commands.size() > 0) {
+		for (int i = 0; i < commands.size(); i++) {
+			char comm = commands.at(i);
+			int status = runCommand(comm, verbose, false, root_dir);
+			if (status > 0) return 1; //Exit upon error
+		}
 
-	return 0;
+		if (run_ui) { //Enter interactive mode if specified
+			std::cout << "Entering interactive mode..." << std::endl;
+			return runUI(root_dir, verbose);
+		} else {
+			return 0;
+		}
+	}
+
+	//If no commands, enter interactive mode
+	runUI(root_dir, verbose);
 }

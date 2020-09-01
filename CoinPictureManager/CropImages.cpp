@@ -103,7 +103,6 @@ void cropImage(Mat *img, Rect *bounding_rect) {
  * @param val Pointer to other fields
  */
 void onCropTrackbar(int sp, void *val) {//Update the current shown image
-	std::chrono::time_point<std::chrono::system_clock> start_time = std::chrono::system_clock::now();
 	Mat img_show = img.clone();
 	
 	//Create a copy of the bounding box and adjust the padding based on the slider value
@@ -115,9 +114,6 @@ void onCropTrackbar(int sp, void *val) {//Update the current shown image
 
 	Size newsize(GetSystemMetrics(SM_CYSCREEN)-200, (GetSystemMetrics(SM_CYSCREEN)-200) * img_show.rows / img_show.cols); //Resize image to a reasonable size for display
 	resize(img_show, img_show, newsize); 
-	std::chrono::time_point<std::chrono::system_clock> end_time = std::chrono::system_clock::now(); //Calculate time elapsed and print
-	double elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-	std::cout << "Proccessing loop time: " << elapsed_ms << " ms" << std::endl;
 	imshow(crop_window_name, img_show); //Show final image
 }
 
@@ -131,7 +127,7 @@ void onCropTrackbar(int sp, void *val) {//Update the current shown image
 int cropImage(const char* filename, const char *output_filename) {
 	img = imread(filename, IMREAD_COLOR);
 	if (!img.data) {
-		std::cout << "Unable to open image " << filename << std::endl;
+		std::cout << "Error! " << filename << ": Unable to open image"<< std::endl;
 		return 1;
 	}
 
@@ -145,15 +141,11 @@ int cropImage(const char* filename, const char *output_filename) {
 	onCropTrackbar(0, 0);
 	waitKey(0);
 
-	std::cout << "Saving image..." << std::endl;
-
 	//Crop and save final image
 	Rect bounding_rect;
 	padBounds(&img, bounding_box, padding_slider, &bounding_rect);
 	cropImage(&img, &bounding_rect);
 	imwrite(output_filename, img);
-
-	std::cout << "Image saved to " << output_filename << std::endl;
 
 	return 0;
 }

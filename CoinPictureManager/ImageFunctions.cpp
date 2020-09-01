@@ -42,7 +42,7 @@ int createThumbnail(fs::path image_dir, int thumbnail_height, int max_pics) {
 	}
 
 	if (c % 2 != 0) {
-		std::cout << "Must be an even number of files in each folder (obverse/reverse pairs) or max_pics of >=1" << std::endl;
+		std::cout << "Error! " << image_dir << ": Must be an even number of files in each folder (obverse/reverse pairs) or max_pics of >=1 (current number: " << c << ")" << std::endl;
 		return 1;
 	}
 
@@ -88,10 +88,8 @@ int createWebp(fs::path image_dir, int quality) {
 	params.push_back(quality);
 	for (auto &f : fs::directory_iterator(image_dir)) { //Each image file
 		if (f.path().extension() == ".JPG" || f.path().extension() == ".jpg") {
-			std::cout << "Creating WebP of file " << f.path().stem() << std::endl;
 			Mat img = imread(f.path().string());
 			fs::path img_out = image_dir / (f.path().stem().string() + ".webp");
-			std::cout << img_out << std::endl;
 			imwrite(img_out.string(), img, params);
 		}
 	}
