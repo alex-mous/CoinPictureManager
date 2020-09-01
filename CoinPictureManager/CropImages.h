@@ -1,5 +1,5 @@
-#ifndef IMAGEFUNCTIONS_H
-#define IMAGEFUNCTIONS_H
+#ifndef CROPIMAGE_H
+#define CROPIMAGE_H
 
 #include "Dependencies.h"
 

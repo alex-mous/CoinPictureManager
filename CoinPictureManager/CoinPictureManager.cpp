@@ -74,7 +74,7 @@ int runCommand(int command) {
 				if (fs::is_directory(d)) {
 					int f_no = 0;
 					for (auto &f : fs::directory_iterator(d)) { //Each image file
-						if (f.path().extension() == ".JPG") {
+						if (f.path().extension() == ".JPG" || f.path().extension() == ".jpg") {
 							std::string name = std::to_string(f_no);
 							name.insert(name.begin(), 4 - name.length(), '0');
 							name = name + ".jpg";
@@ -84,6 +84,33 @@ int runCommand(int command) {
 							f_no++;
 						}
 					}
+				}
+			}
+			return 0;
+		case 2:
+			std::cout << "Creating thumbnail files in subdirectories (up to two images)..." << std::endl;
+			for (auto &d : fs::directory_iterator(path)) { //Each sub-directory
+				if (fs::is_directory(d)) {
+					std::cout << "Directory: " << d.path().filename() << std::endl;
+					createThumbnail(d.path(), 250, 2);
+				}
+			}
+			return 0;
+		case 3:
+			std::cout << "Creating thumbnail files in subdirectories..." << std::endl;
+			for (auto &d : fs::directory_iterator(path)) { //Each sub-directory
+				if (fs::is_directory(d)) {
+					std::cout << "Directory: " << d.path().filename() << std::endl;
+					createThumbnail(d.path(), 250, -1);
+				}
+			}
+			return 0;
+		case 4:
+			std::cout << "Creating WebP images..." << std::endl;
+			for (auto &d : fs::directory_iterator(path)) { //Each sub-directory
+				if (fs::is_directory(d)) {
+					std::cout << "Directory: " << d.path().filename() << std::endl;
+					createWebp(d.path(), 50);
 				}
 			}
 			return 0;
