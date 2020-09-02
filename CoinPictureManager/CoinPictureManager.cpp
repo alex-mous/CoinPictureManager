@@ -23,7 +23,7 @@
 #include "CropImages.h"
 #include "ImageFunctions.h"
 
-#define DEFAULT_PATH "./Images"
+#define DEFAULT_PATH "./"
 
 std::string info_str = "Manage and prepare coin pictures located in subdirectories of DIRECTORY";
 
@@ -52,15 +52,13 @@ std::string help_str = "-------------- PictureManager --------------\n----- Mana
 Run commands (enter l for a list or h for help)\n";
 
 std::string command_str = "\nAvailable commands: \n\t1: renaming files to sequential numbers\n\
-\t3: create thumbnails with all images\n\t2: create thumbnails from the first two images\n\
+\t2: create thumbnails with all images\n\t3: create thumbnails from the first two images\n\
 \t4: create WebP images\n\t5: run chroma keying \n\
 \t6: crop each image \n\tl: show this list\n\tl: show help\n\tq: quit\n\n\n";
 
 std::string verify_str = "Files MUST be organized as follows : \n\
-(Default picture directory is \"Images\" unless otherwise specified with command line options)\n\
 / This directory \n\
 \tThis File.exe \n\
-\t/ Images \n\
 \t\t/ DIR1 \n\
 \t\t\tPIC1.jpg \n\
 \t\t\t... \n\
@@ -70,6 +68,7 @@ std::string verify_str = "Files MUST be organized as follows : \n\
 \t\t\tPIC1.jpg \n\
 \t\t\t... \n\
 \t\t\tPICN.jpg\n";
+
 
 /*
  * Rename the files in subdirectories of root_dir to sequential numbers
@@ -84,10 +83,10 @@ int renameFiles(fs::path root_dir, boolean verbose) {
 			int f_no = 0;
 			if (verbose) std::cout << "\tDirectory: " << d.path().filename() << std::endl;
 			for (auto &f : fs::directory_iterator(d)) { //Each image file
-				if (f.path().extension() == ".JPG" || f.path().extension() == ".jpg") {
+				if (isImage(f.path().extension().string())) {
 					std::string name = std::to_string(f_no);
 					name.insert(name.begin(), 4 - name.length(), '0');
-					name = name + ".jpg";
+					name = name + f.path().extension().string();
 					fs::path new_path = d.path() / name;
 					fs::rename(f, new_path);
 					if (verbose) std::cout << "\t\tRenaming " << f.path().filename() << " to " << name << std::endl;
@@ -132,7 +131,7 @@ int createWebp(fs::path root_dir, boolean verbose) {
 	for (auto &d : fs::directory_iterator(root_dir)) { //Each sub-directory
 		if (fs::is_directory(d)) {
 			if (verbose) std::cout << "\tDirectory: " << d.path().filename() << std::endl;
-			createWebp(d.path(), 50);
+			createWebp(d.path(), 50, verbose);
 		}
 	}
 	return 0;
@@ -150,7 +149,7 @@ int chromaKey(fs::path root_dir, boolean verbose) {
 		if (fs::is_directory(d)) {
 			if (verbose) std::cout << "\tDirectory: " << d.path().filename() << std::endl;
 			for (auto &f : fs::directory_iterator(d)) { //Each image file
-				if (f.path().extension() == ".JPG") {
+				if (isImage(f.path().extension().string())) {
 					if (verbose) std::cout << "\t\tChroma keying image: " << f.path().string() << std::endl;
 					chromaKeyInterface(f.path().string().c_str(), f.path().string().c_str());
 				}
@@ -172,7 +171,7 @@ int cropImages(fs::path root_dir, boolean verbose) {
 		if (fs::is_directory(d)) {
 			if (verbose) std::cout << "\tDirectory: " << d.path().filename() << std::endl;
 			for (auto &f : fs::directory_iterator(d)) { //Each image file
-				if (f.path().extension() == ".JPG") {
+				if (isImage(f.path().extension().string())) {
 					if (verbose) std::cout << "\t\tCropping image: " << f.path().string() << std::endl;
 					cropImage(f.path().string().c_str(), f.path().string().c_str());
 				}
@@ -193,9 +192,9 @@ int runCommand(char command, boolean verbose, boolean interactive_mode, fs::path
 		case '1':
 			return renameFiles(root_dir, verbose);
 		case '2':
-			return createThumbnail(root_dir, 2, verbose);
-		case '3':
 			return createThumbnail(root_dir, -1, verbose);
+		case '3':
+			return createThumbnail(root_dir, 2, verbose);
 		case '4':
 			return createWebp(root_dir, verbose);
 		case '5':
@@ -298,5 +297,5 @@ int main(int argc, char **argv) { //Main loop - parse any command line options a
 	}
 
 	//If no commands, enter interactive mode
-	runUI(root_dir, verbose);
+	runUI(root_dir, true);
 }
