@@ -24,9 +24,9 @@
  * Determine if file is an acceptable image format based on extension
  *
  * @param ext String of the file extension (case-insensitive)
- * @return boolean if file is an image
+ * @return bool if file is an image
  */
-boolean isImage(std::string ext) {
+bool isImage(std::string ext) {
 	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 	return ext==".jpg" || ext==".jpeg" || ext==".jpe" || ext==".jp2" || ext==".png";
 }
@@ -95,7 +95,7 @@ int createThumbnail(fs::path image_dir, int thumbnail_height, int max_pics) {
  * @param quality WebP image quality (0-100)
  * @param verbose Verbose
  */
-int createWebp(fs::path image_dir, int quality, boolean verbose) {
+int createWebp(fs::path image_dir, int quality, bool verbose) {
 	vector<int> params;
 	params.push_back(IMWRITE_WEBP_QUALITY);
 	params.push_back(quality);

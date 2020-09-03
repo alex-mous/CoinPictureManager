@@ -83,7 +83,13 @@ void chromaKey(Mat *img) {
  */
 void updateDisplay() {
 	Mat img_show;
-	Size newsize(900 * bgra.cols / bgra.rows, 900); //Resize image to a reasonable size
+#ifdef _WIN32
+	Size newsize(GetSystemMetrics(SM_CYSCREEN) - 200, (GetSystemMetrics(SM_CYSCREEN) - 200) * img_show.rows / img_show.cols); //Resize image to a reasonable size for display
+#elif __linux__
+	Display* d = XOpenDisplay(NULL);
+	Screen*  s = DefaultScreenOfDisplay(d);
+	Size newsize(s->width - 200, (s->height - 200) * img_show.rows / img_show.cols); //Resize image to a reasonable size for display
+#endif
 	resize(bgra, img_show, newsize);
 
 	//std::chrono::time_point<std::chrono::system_clock> start_time = std::chrono::system_clock::now();

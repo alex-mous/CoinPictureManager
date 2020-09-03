@@ -21,18 +21,22 @@
 - For the latest stable version, please see the releases tab and download the EXE file.
 - Next, either place this file in the directory where you want to manage pictures or place it in a safe directory and add the variable to the path as above so it can be run globally (run the command `SET PATH=%PATH%;c:\PATH\TO\YOUR\EXE`)
 - *To download the latest code, clone this repository and open the project in Visual Studio*
-### Linux
-*To be added*
-## Usage
 
+### Linux
+- A Makefile is provided for easy code compilation. Install make with `sudo apt-get install make` if you do not have it already.
+- Run `make` in the CoinPictureManager directory to compile the code. The finished program will be in a file called coinpicturemanager.
+- Use `make clean` to remove the build files
+- To install the command system-wide, run `make install` (`make remove` to remove it).
+
+## Usage
 `coinpicturemanager [DIRECTORY] [OPTIONS]`
 
 *Without a specified directory, the app uses the current directory. Without any options or when run as a desktop app on Windows, it will run in verbose interactive mode.*
 
 ### Options
-	-h			Print this help
-	-i			Interactive mode (default unless other option specified)
-	-v			Verbose mode
+	-h		Print this help
+	-i		Interactive mode (default unless other option specified)
+	-v		Verbose mode
 	-c=COMMANDS	Run command(s) (commands run in order listed; see available commands below)
 
 ### Commands

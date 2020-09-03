@@ -46,7 +46,7 @@ void getBounds(Mat img, Rect *bounding_rect) {
 	vector<vector<Point>> cnts;
 	findContours(canny, cnts, RETR_TREE, CHAIN_APPROX_SIMPLE);
 
-	for (int i = 0; i < cnts.size(); i++) {
+	for (unsigned int i = 0; i < cnts.size(); i++) {
 		float peri = arcLength(cnts[i], true);
 		vector<Point> cnts_poly(1);
 		approxPolyDP(cnts[i], cnts_poly, 0.0015 * peri, true);
@@ -112,7 +112,13 @@ void onCropTrackbar(int sp, void *val) {//Update the current shown image
 	plotBounds(&img_show, &bounding_rect);
 	cropImage(&img_show, &bounding_rect);
 
-	Size newsize(GetSystemMetrics(SM_CYSCREEN)-200, (GetSystemMetrics(SM_CYSCREEN)-200) * img_show.rows / img_show.cols); //Resize image to a reasonable size for display
+#ifdef _WIN32
+		Size newsize(GetSystemMetrics(SM_CYSCREEN)-200, (GetSystemMetrics(SM_CYSCREEN)-200) * img_show.rows / img_show.cols); //Resize image to a reasonable size for display
+#elif __linux__
+		Display* d = XOpenDisplay(NULL);
+		Screen*  s = DefaultScreenOfDisplay(d);
+		Size newsize(s->width - 200, (s->height - 200) * img_show.rows / img_show.cols); //Resize image to a reasonable size for display
+#endif
 	resize(img_show, img_show, newsize); 
 	imshow(crop_window_name, img_show); //Show final image
 }

@@ -76,13 +76,13 @@ std::string verify_str = "Files MUST be organized as follows : \n\
  * @param root_dir Top directory (to search below)
  * @param verbose Verbose
  */
-int renameFiles(fs::path root_dir, boolean verbose) {
+int renameFiles(fs::path root_dir, bool verbose) {
 	std::cout << "Renaming files in subdirectories" << std::endl;
-	for (auto &d : fs::directory_iterator(root_dir)) { //Each sub-directory
+	for (auto &d: fs::directory_iterator(root_dir)) { //Each sub-directory
 		if (fs::is_directory(d)) {
 			int f_no = 0;
 			if (verbose) std::cout << "\tDirectory: " << d.path().filename() << std::endl;
-			for (auto &f : fs::directory_iterator(d)) { //Each image file
+			for (auto &f: fs::directory_iterator(d)) { //Each image file
 				if (isImage(f.path().extension().string())) {
 					std::string name = std::to_string(f_no);
 					name.insert(name.begin(), 4 - name.length(), '0');
@@ -105,13 +105,13 @@ int renameFiles(fs::path root_dir, boolean verbose) {
  * @param max_imgs Maximum number of images to use (-1 for all)
  * @param verbose Verbose
  */
-int createThumbnail(fs::path root_dir, int max_imgs, boolean verbose) {
+int createThumbnail(fs::path root_dir, int max_imgs, bool verbose) {
 	if (max_imgs > 0) {
 		std::cout << "Creating thumbnail files in subdirectories with a maximum number of pictures " << max_imgs << "..." << std::endl;
 	} else {
 		std::cout << "Creating thumbnail files in subdirectories..." << std::endl;
 	}
-	for (auto &d : fs::directory_iterator(root_dir)) { //Each sub-directory
+	for (auto &d: fs::directory_iterator(root_dir)) { //Each sub-directory
 		if (fs::is_directory(d)) {
 			if (verbose) std::cout << "\tDirectory: " << d.path().filename() << std::endl;
 			createThumbnail(d.path(), 250, max_imgs);
@@ -126,7 +126,7 @@ int createThumbnail(fs::path root_dir, int max_imgs, boolean verbose) {
  * @param root_dir Top directory (to search below)
  * @param verbose Verbose
  */
-int createWebp(fs::path root_dir, boolean verbose) {
+int createWebp(fs::path root_dir, bool verbose) {
 	std::cout << "Creating WebP images..." << std::endl;
 	for (auto &d : fs::directory_iterator(root_dir)) { //Each sub-directory
 		if (fs::is_directory(d)) {
@@ -143,9 +143,9 @@ int createWebp(fs::path root_dir, boolean verbose) {
  * @param root_dir Top directory (to search below)
  * @param verbose Verbose
  */
-int chromaKey(fs::path root_dir, boolean verbose) {
+int chromaKey(fs::path root_dir, bool verbose) {
 	std::cout << "Running chroma keying..." << std::endl;
-	for (auto &d : fs::directory_iterator(root_dir)) { //Each sub-directory
+	for (auto &d: fs::directory_iterator(root_dir)) { //Each sub-directory
 		if (fs::is_directory(d)) {
 			if (verbose) std::cout << "\tDirectory: " << d.path().filename() << std::endl;
 			for (auto &f : fs::directory_iterator(d)) { //Each image file
@@ -165,9 +165,9 @@ int chromaKey(fs::path root_dir, boolean verbose) {
  * @param root_dir Top directory (to search below)
  * @param verbose Verbose
  */
-int cropImages(fs::path root_dir, boolean verbose) {
+int cropImages(fs::path root_dir, bool verbose) {
 	std::cout << "Cropping images..." << std::endl;
-	for (auto &d : fs::directory_iterator(root_dir)) { //Each sub-directory
+	for (auto &d: fs::directory_iterator(root_dir)) { //Each sub-directory
 		if (fs::is_directory(d)) {
 			if (verbose) std::cout << "\tDirectory: " << d.path().filename() << std::endl;
 			for (auto &f : fs::directory_iterator(d)) { //Each image file
@@ -187,7 +187,7 @@ int cropImages(fs::path root_dir, boolean verbose) {
  * @param command Integer command as defined in getSelection
  * @return success code
  */
-int runCommand(char command, boolean verbose, boolean interactive_mode, fs::path root_dir) {
+int runCommand(char command, bool verbose, bool interactive_mode, fs::path root_dir) {
 	switch (command) {
 		case '1':
 			return renameFiles(root_dir, verbose);
@@ -226,7 +226,7 @@ int runCommand(char command, boolean verbose, boolean interactive_mode, fs::path
  *
  * @return status code
  */
-int runUI(fs::path root_dir, boolean verbose) {
+int runUI(fs::path root_dir, bool verbose) {
 	std::cout << help_str;
 	while (1) {
 		char sel;
@@ -241,7 +241,7 @@ int runUI(fs::path root_dir, boolean verbose) {
 }
 
 int main(int argc, char **argv) { //Main loop - parse any command line options and run either command or interactive mode
-	boolean run_ui = false, verbose = false;
+	bool run_ui = false, verbose = false;
 	std::vector<char> commands;
 	fs::path root_dir = fs::path(DEFAULT_PATH);
 
@@ -257,7 +257,7 @@ int main(int argc, char **argv) { //Main loop - parse any command line options a
 				verbose = true;
 			} else if (argv[i][1] == 'c') { //Run command
 				if (strlen(argv[i]) > 3 && argv[i][2] == '=') {
-					for (int c=3; c<strlen(argv[i]); c++) {
+					for (unsigned int c = 3; c < strlen(argv[i]); c++) {
 						commands.push_back(argv[i][c]);
 					}
 				} else {
@@ -282,7 +282,7 @@ int main(int argc, char **argv) { //Main loop - parse any command line options a
 
 	//Run any commands
 	if (commands.size() > 0) {
-		for (int i = 0; i < commands.size(); i++) {
+		for (unsigned int i = 0; i < commands.size(); i++) {
 			char comm = commands.at(i);
 			int status = runCommand(comm, verbose, false, root_dir);
 			if (status > 0) return 1; //Exit upon error
