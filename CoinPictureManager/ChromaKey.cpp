@@ -33,6 +33,9 @@ int alpha_max_slider = ALPHA_MAX;
 //Main image
 Mat bgra; //Input image (BGRA format)
 
+
+Size newsize; //Global cropped image size
+
 /*
  * Alpha mapping function for 0-510 color distance value to a 0-255 alpha value
  *
@@ -83,15 +86,8 @@ void chromaKey(Mat *img) {
  */
 void updateDisplay() {
 	Mat img_show;
-#ifdef _WIN32
-	Size newsize(GetSystemMetrics(SM_CYSCREEN) - 200, (GetSystemMetrics(SM_CYSCREEN) - 200) * img_show.rows / img_show.cols); //Resize image to a reasonable size for display
-#elif __linux__
-	Display* d = XOpenDisplay(NULL);
-	Screen*  s = DefaultScreenOfDisplay(d);
-	Size newsize(s->width - 200, (s->height - 200) * img_show.rows / img_show.cols); //Resize image to a reasonable size for display
-#endif
-	resize(bgra, img_show, newsize);
 
+	resize(bgra, img_show, newsize);
 	//std::chrono::time_point<std::chrono::system_clock> start_time = std::chrono::system_clock::now();
 	chromaKey(&img_show); //Run chroma key function
 	//std::chrono::time_point<std::chrono::system_clock> end_time = std::chrono::system_clock::now(); //Calculate time elapsed and print
@@ -134,13 +130,20 @@ int chromaKeyInterface(const char* filename, const char *output_filename) {
 		return 1;
 	}
 
+#ifdef _WIN32
+	newsize = Size(GetSystemMetrics(SM_CYSCREEN) - 200, (GetSystemMetrics(SM_CYSCREEN) - 200) * image.rows / image.cols); //Resize image to a reasonable size for display
+#elif __linux__
+	Display* d = XOpenDisplay(NULL);
+	Screen*  s = DefaultScreenOfDisplay(d);
+	Size newsize(s->width - 200, (s->height - 200) * img_show.rows / img_show.cols); //Resize image to a reasonable size for display
+#endif
+
 	cvtColor(image, bgra, COLOR_BGR2BGRA);
 
 	namedWindow(window_name, WINDOW_AUTOSIZE); //Create named window to place sliders and image upon
 
 	createTrackbar("Alpha Min", window_name, &alpha_min_slider, 510, onTrackbar); //Create trackbars to adjust alpha min and max values
 	createTrackbar("Alpha Max", window_name, &alpha_max_slider, 510, onTrackbar);
-
 	onTrackbar(0, 0);
 	waitKey(0);
 
