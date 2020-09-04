@@ -22,9 +22,16 @@
 
 //Global variables used in update routine
 const char *crop_window_name = "Crop Image";
-int padding_slider = 50; //Padding on bounding rectangle
+int x_slider; //Padding on bounding rectangle
+int y_slider;
+int w_slider;
+int h_slider;
 Mat img;
 Rect bounding_box;
+
+//Global var of the image size
+Size newsize;
+
 
 /*
  * Get the bounding box for the image
@@ -47,7 +54,7 @@ void getBounds(Mat img, Rect *bounding_rect) {
 	findContours(canny, cnts, RETR_TREE, CHAIN_APPROX_SIMPLE);
 
 	for (unsigned int i = 0; i < cnts.size(); i++) {
-		float peri = arcLength(cnts[i], true);
+		double peri = arcLength(cnts[i], true);
 		vector<Point> cnts_poly(1);
 		approxPolyDP(cnts[i], cnts_poly, 0.0015 * peri, true);
 		Rect rect = boundingRect(cnts_poly);
@@ -62,17 +69,16 @@ void getBounds(Mat img, Rect *bounding_rect) {
  *
  * @param img Pointer to image where bounds are based
  * @param bounds Rectangle of the bounds
+ * @param output Pointer to the output bound rectangle
  */
-void padBounds(Mat *img, Rect bounds, int padding, Rect *output) {
+void padBounds(Mat *img, Rect bounds, Rect *output) {
 	*output = bounds;
-	(*output).x -= padding_slider;
+	(*output).x = x_slider;
 	(*output).x = max((*output).x, 0);
-	(*output).y -= padding_slider;
+	(*output).y = y_slider;
 	(*output).y = max((*output).y, 0);
-	(*output).width += 2 * padding_slider;
-	(*output).width = min((*output).width, (*img).cols);
-	(*output).height += 2 * padding_slider;
-	(*output).height = min((*output).height, (*img).rows);
+	(*output).width = min(max(w_slider, 10), (*img).cols-x_slider);
+	(*output).height = min(max(h_slider, 10), (*img).rows-y_slider);
 }
 
 /*
@@ -107,18 +113,11 @@ void onCropTrackbar(int sp, void *val) {//Update the current shown image
 	
 	//Create a copy of the bounding box and adjust the padding based on the slider value
 	Rect bounding_rect;
-	padBounds(&img, bounding_box, padding_slider, &bounding_rect);
+	padBounds(&img, bounding_box, &bounding_rect);
 
 	plotBounds(&img_show, &bounding_rect);
 	cropImage(&img_show, &bounding_rect);
 
-#ifdef _WIN32
-		Size newsize(GetSystemMetrics(SM_CYSCREEN)-200, (GetSystemMetrics(SM_CYSCREEN)-200) * img_show.rows / img_show.cols); //Resize image to a reasonable size for display
-#elif __linux__
-		Display* d = XOpenDisplay(NULL);
-		Screen*  s = DefaultScreenOfDisplay(d);
-		Size newsize(s->width - 200, (s->height - 200) * img_show.rows / img_show.cols); //Resize image to a reasonable size for display
-#endif
 	resize(img_show, img_show, newsize); 
 	imshow(crop_window_name, img_show); //Show final image
 }
@@ -137,19 +136,37 @@ int cropImage(const char* filename, const char *output_filename) {
 		return 1;
 	}
 
+	//Set the displayed image size
+	#ifdef _WIN32
+		newsize = Size(GetSystemMetrics(SM_CYSCREEN) - 200, (GetSystemMetrics(SM_CYSCREEN) - 200) * img.rows / img.cols); //Resize image to a reasonable size for display
+	#elif __linux__
+		Display* d = XOpenDisplay(NULL);
+		Screen*  s = DefaultScreenOfDisplay(d);
+		newsize = new Size(s->width - 200, (s->height - 200) * img.rows / img.cols); //Resize image to a reasonable size for display
+	#endif
+
+	
+
 	//Get bounding box
 	getBounds(img, &bounding_box);
+	x_slider = bounding_box.x;
+	y_slider = bounding_box.y;
+	w_slider = bounding_box.width;
+	h_slider = bounding_box.height;
 
 	namedWindow(crop_window_name, WINDOW_AUTOSIZE); //Create named window to place sliders and image upon
 
-	createTrackbar("Adjust boundary", crop_window_name, &padding_slider, 200, onCropTrackbar); //Create trackbars to adjust alpha min and max values
+	createTrackbar("X", crop_window_name, &x_slider, img.cols, onCropTrackbar); //Create trackbars to adjust left, right, top and bottom padding
+	createTrackbar("Y", crop_window_name, &y_slider, img.rows, onCropTrackbar);
+	createTrackbar("Width", crop_window_name, &w_slider, img.cols, onCropTrackbar);
+	createTrackbar("Height", crop_window_name, &h_slider, img.rows, onCropTrackbar);
 
 	onCropTrackbar(0, 0);
 	waitKey(0);
 
 	//Crop and save final image
 	Rect bounding_rect;
-	padBounds(&img, bounding_box, padding_slider, &bounding_rect);
+	padBounds(&img, bounding_box, &bounding_rect);
 	cropImage(&img, &bounding_rect);
 	imwrite(output_filename, img);
 
