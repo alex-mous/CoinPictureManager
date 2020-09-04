@@ -73,10 +73,8 @@ void getBounds(Mat img, Rect *bounding_rect) {
  */
 void padBounds(Mat *img, Rect bounds, Rect *output) {
 	*output = bounds;
-	(*output).x = x_slider;
-	(*output).x = max((*output).x, 0);
-	(*output).y = y_slider;
-	(*output).y = max((*output).y, 0);
+	(*output).x = max(min(x_slider-11, (*img).cols-w_slider-10), 0);
+	(*output).y = max(min(y_slider-11, (*img).rows-h_slider-10), 0);
 	(*output).width = min(max(w_slider, 10), (*img).cols-x_slider);
 	(*output).height = min(max(h_slider, 10), (*img).rows-y_slider);
 }
@@ -138,11 +136,11 @@ int cropImage(const char* filename, const char *output_filename) {
 
 	//Set the displayed image size
 	#ifdef _WIN32
-		newsize = Size(GetSystemMetrics(SM_CYSCREEN) - 200, (GetSystemMetrics(SM_CYSCREEN) - 200) * img.rows / img.cols); //Resize image to a reasonable size for display
+		newsize = Size(GetSystemMetrics(SM_CYSCREEN) - 500, (GetSystemMetrics(SM_CYSCREEN) - 500) * img.rows / img.cols); //Resize image to a reasonable size for display
 	#elif __linux__
 		Display* d = XOpenDisplay(NULL);
 		Screen*  s = DefaultScreenOfDisplay(d);
-		newsize = new Size(s->width - 200, (s->height - 200) * img.rows / img.cols); //Resize image to a reasonable size for display
+		newsize = new Size(s->width - 500, (s->height - 500) * img.rows / img.cols); //Resize image to a reasonable size for display
 	#endif
 
 	
@@ -156,8 +154,8 @@ int cropImage(const char* filename, const char *output_filename) {
 
 	namedWindow(crop_window_name, WINDOW_AUTOSIZE); //Create named window to place sliders and image upon
 
-	createTrackbar("X", crop_window_name, &x_slider, img.cols, onCropTrackbar); //Create trackbars to adjust left, right, top and bottom padding
-	createTrackbar("Y", crop_window_name, &y_slider, img.rows, onCropTrackbar);
+	createTrackbar("X", crop_window_name, &x_slider, img.cols-150, onCropTrackbar); //Create trackbars to adjust left, right, top and bottom padding
+	createTrackbar("Y", crop_window_name, &y_slider, img.rows-150, onCropTrackbar);
 	createTrackbar("Width", crop_window_name, &w_slider, img.cols, onCropTrackbar);
 	createTrackbar("Height", crop_window_name, &h_slider, img.rows, onCropTrackbar);
 
