@@ -23,7 +23,7 @@
 #include "CropImages.h"
 #include "ImageFunctions.h"
 
-#define DEFAULT_PATH "./"
+#define DEFAULT_PATH "./Public"
 
 std::string info_str = "Manage and prepare coin pictures located in subdirectories of DIRECTORY";
 

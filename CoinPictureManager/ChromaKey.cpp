@@ -112,6 +112,7 @@ void onTrackbar(int sp, void *val) {
 		ALPHA_MIN = alpha_min_slider;
 		ALPHA_MAX = alpha_max_slider;
 	}
+	std::cout << ALPHA_MIN << " " << ALPHA_MAX << std::endl;
 	updateDisplay();
 }
 
